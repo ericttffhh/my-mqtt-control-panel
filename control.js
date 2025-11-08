@@ -1,7 +1,7 @@
 var client = null;
 // ****** 重要：請替換成您 Mosquitto Broker 的公開網域名稱或 IP ******
-var host = "your.public.broker.domain.com"; 
-var port = 8884; // WSS Port
+var host = "broker.emqx.io"; 
+var port = 8084; // WSS Port
 
 // 定義內建主題，這些主題不會被「清除自訂主題」功能移除
 const DEFAULT_TOPICS = [
@@ -205,4 +205,5 @@ function publishLevel(level) {
 window.onload = function() {
     renderTopicsList(); 
     startConnect();     
+
 };
