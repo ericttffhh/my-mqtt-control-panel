@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智慧家庭控制平台</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.2/mqttws31.min.js" type="text/javascript"></script>
+    <script src="control.js"></script>
+</head>
+<body>
+
+    <header>
+        <h1>智慧家庭控制平台</h1>
+        <div id="status-display">
+            連線狀態: <span id="connection-status" class="disconnected">已斷開</span>
+            <button onclick="startConnect()" id="connect-btn">重新連線</button>
+        </div>
+    </header>
+
+    <main class="dashboard-grid">
+        
+        <div class="card sensor-module">
+            <h2>🌡️ 室內溫度</h2>
+            <p><span id="temp-reading" class="data-value">--</span> °C</p>
+            <small>主題: emqx/esp32eqw/temp</small>
+        </div>
+        
+        <div class="card sensor-module">
+            <h2>💧 室內濕度</h2>
+            <p><span id="humidity-reading" class="data-value">--</span> %</p>
+            <small>主題: emqx/esp32eqw/humi</small>
+        </div>
+        
+        <div class="card sensor-module">
+            <h2>💡 環境光照度</h2>
+            <p><span id="lux-reading" class="data-value">--</span> Lux</p>
+            <small>主題: emqx/esp32eqw/light</small>
+        </div>
+
+        <div class="card control-module full-width">
+            <h2>調整設備亮度/強度 (0-31 段)</h2>
+            <p>
+                當前設定值: <span id="current-level" class="data-value-small">0</span>
+            </p>
+            <input type="range" min="0" max="31" value="0" id="level-slider" 
+                   oninput="updateLevelDisplay(this.value)" 
+                   onmouseup="publishLevel(this.value)">
+            <small>控制/狀態主題: emqx/esp32eqw</small>
+        </div>
+
+        <div class="card control-module full-width" id="subscription-manager">
+            <h2>🌐 MQTT 主題訂閱管理 (Local Storage)</h2>
+            <div id="topic-form">
+                <input type="text" id="new-topic-input" placeholder="輸入新的訂閱主題 (例如: home/kitchen/status)">
+                <button onclick="addTopicFromInput()">新增並訂閱</button>
+                <button onclick="clearTopics()" class="btn-off">清除所有自訂主題</button>
+            </div>
+            
+            <h3>當前訂閱列表</h3>
+            <ul id="subscribed-topics-list">
+                </ul>
+            <small>提示：訊息會顯示在日誌中。如需在介面上顯示，請修改 control.js 中的 onMessageArrived 函式。</small>
+        </div>
+        
+        <div class="card log-module full-width">
+            <h2>📝 訊息日誌 (除錯用)</h2>
+            <div id="messages"></div>
+        </div>
+        
+    </main>
+
+</body>
+</html>
