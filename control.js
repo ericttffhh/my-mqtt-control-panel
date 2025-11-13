@@ -159,6 +159,10 @@ function publishMessage(topic, message) {
         client.send(mqttMessage);
         document.getElementById("messages").innerHTML += "<span> [發佈] 主題: " + topic + " | 訊息: " + message + "</span><br>";
     } else {
+        // ****** 增加除錯訊息 ******
+        if (client) {
+             document.getElementById("messages").innerHTML += "<span> [警告] 連線狀態: " + client.isConnected() + "。無法發佈。</span><br>";
+        }
         alert("請先連接到 MQTT Broker！");
     }
 }
@@ -208,4 +212,5 @@ window.onload = function() {
     startConnect();     
 
 };
+
 
