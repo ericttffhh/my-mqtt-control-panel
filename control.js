@@ -120,6 +120,7 @@ function startConnect() {
     var options = {
         timeout: 3,
         useSSL: true, 
+        keepAliveInterval: 90,
         onSuccess: onConnect, 
         onFailure: onFailure   
     };
@@ -207,3 +208,4 @@ window.onload = function() {
     startConnect();     
 
 };
+
