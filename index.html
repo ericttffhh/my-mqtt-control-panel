@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>智慧家庭控制平台</title>
+    <title>PDLC控制平台</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.2/mqttws31.min.js" type="text/javascript"></script>
     <script src="control.js"></script>
@@ -11,7 +11,7 @@
 <body>
 
     <header>
-        <h1>智慧家庭控制平台</h1>
+        <h1>PDLC控制平台</h1>
         <div id="status-display">
             連線狀態: <span id="connection-status" class="disconnected">已斷開</span>
             <button onclick="startConnect()" id="connect-btn">重新連線</button>
@@ -41,11 +41,11 @@
         <div class="card sensor-module">
             <h2>🔢 當前設備狀態</h2>
             <p><span id="actual-level-reading" class="data-value">讀取中...</span></p>
-            <small>狀態主題: emqx/esp32eqwc</small>
+            <small>主題: emqx/esp32eqwc</small>
         </div>
 
         <div class="card control-module full-width">
-            <h2>調整設備亮度/強度 (0-31 段)</h2>
+            <h2>調整PDLC檔位 (0-31 段)</h2>
             <p>
                 發佈設定值: <span id="current-level-setpoint" class="data-value-small">0</span>
             </p>
@@ -78,3 +78,4 @@
 
 </body>
 </html>
+
