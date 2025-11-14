@@ -38,15 +38,21 @@
             <small>主題: emqx/esp32eqw/light</small>
         </div>
 
+        <div class="card sensor-module">
+            <h2>🔢 當前設備檔位</h2>
+            <p><span id="actual-level-reading" class="data-value">0</span> / 31</p>
+            <small>狀態主題: emqx/esp32eqwc</small>
+        </div>
+
         <div class="card control-module full-width">
-            <h2>調整玻璃霧化檔位 (0-31 段)</h2>
+            <h2>調整PDLC檔位 (0-31 段)</h2>
             <p>
-                當前設定值: <span id="current-level" class="data-value-small">0</span>
+                發佈設定值: <span id="current-level-setpoint" class="data-value-small">0</span>
             </p>
             <input type="range" min="0" max="31" value="0" id="level-slider" 
                    oninput="updateLevelDisplay(this.value)" 
                    onmouseup="publishLevel(this.value)">
-            <small>控制/狀態主題: emqx/esp32eqw</small>
+            <small>發佈主題: emqx/esp32eqw</small>
         </div>
 
         <div class="card control-module full-width" id="subscription-manager">
@@ -71,6 +77,4 @@
     </main>
 
 </body>
-
 </html>
-
