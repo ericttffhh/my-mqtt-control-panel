@@ -191,7 +191,15 @@ function onMessageArrived(message) {
         // 處理新的獨立狀態主題 (實際檔位回傳)
         var actualLevel = parseInt(payload);
         if (!isNaN(actualLevel) && actualLevel >= 0 && actualLevel <= 31) {
-            document.getElementById("actual-level-reading").innerHTML = actualLevel;
+            
+            let displayValue;
+            if (actualLevel === 0) {
+                displayValue = "關閉"; // 數值 0 顯示中文「關閉」
+            } else {
+                displayValue = actualLevel.toString(); // 數值 1-31 顯示數字
+            }
+            
+            document.getElementById("actual-level-reading").innerHTML = displayValue;
         }
     } else if (topic === "emqx/esp32eqw") { 
         // 處理拉條的控制主題 (如果裝置回傳該主題，我們用它來更新發佈設定值)
@@ -222,3 +230,4 @@ window.onload = function() {
     renderTopicsList(); 
     startConnect();     
 };
+
