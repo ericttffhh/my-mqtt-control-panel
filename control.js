@@ -6,7 +6,7 @@ var port = 8084; // WSS Port
 // 定義內建主題，這些主題不會被「清除自訂主題」功能移除
 const DEFAULT_TOPICS = [
     "emqx/esp32eqw",             // 拉條的控制 (發佈)
-    "emqx/esp32eqwc",           // 拉條的實際狀態回傳 (訂閱)
+    "emqx/esp32eqwc",           // 拉條的實際狀態回傳 (訂閱) - 用於接收中文/文字狀態
     "emqx/esp32eqw/temp",        // 溫度
     "emqx/esp32eqw/humi",        // 濕度
     "emqx/esp32eqw/light"        // 光照度
@@ -122,7 +122,6 @@ function startConnect() {
     var options = {
         timeout: 3,
         useSSL: true, // 啟用 WSS 安全連線
-        // 建議在行動網路環境中提高 Keep Alive
         keepAliveInterval: 90, 
         onSuccess: onConnect, 
         onFailure: onFailure   
@@ -163,7 +162,6 @@ function publishMessage(topic, message) {
     if (client && client.isConnected()) {
         var mqttMessage = new Paho.MQTT.Message(message);
         mqttMessage.destinationName = topic;
-        // 使用 QoS 1 確保在不穩定的行動網路下指令能到達
         mqttMessage.qos = 1; 
         client.send(mqttMessage);
         document.getElementById("messages").innerHTML += "<span> [發佈] 主題: " + topic + " (QoS 1) | 訊息: " + message + "</span><br>";
@@ -172,8 +170,6 @@ function publishMessage(topic, message) {
     }
 }
 
-
-// control.js - 修改 onMessageArrived 函式
 
 // 3. 處理接收到的訊息 (更新網頁介面)
 function onMessageArrived(message) {
@@ -190,16 +186,14 @@ function onMessageArrived(message) {
     } else if (topic === "emqx/esp32eqw/light") { 
         document.getElementById("lux-reading").innerHTML = parseFloat(payload).toFixed(0);
     } else if (topic === "emqx/esp32eqwc") { 
-        // 處理新的獨立狀態主題：直接顯示收到的中文/文字訊息
+        // 處理獨立狀態主題：直接顯示收到的中文/文字訊息
         var statusText = payload.trim();
         
-        // 檢查是否有內容，並更新顯示
         if (statusText.length > 0) {
             document.getElementById("actual-level-reading").innerHTML = statusText;
         } else {
              document.getElementById("actual-level-reading").innerHTML = "無狀態訊息";
         }
-
     } else if (topic === "emqx/esp32eqw") { 
         // 處理拉條的控制主題 (如果裝置回傳該主題，我們用它來更新發佈設定值)
         var setpoint = parseInt(payload);
@@ -209,8 +203,6 @@ function onMessageArrived(message) {
     }
     // 其他使用者新增的主題訊息將只顯示在日誌中。
 }
-    // 其他使用者新增的主題訊息將只顯示在日誌中。
-
 
 // --- 滑桿控制函式 ---
 
@@ -231,5 +223,3 @@ window.onload = function() {
     renderTopicsList(); 
     startConnect();     
 };
-
-
