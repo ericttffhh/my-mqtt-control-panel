@@ -188,4 +188,73 @@ header {
     display: block;
     border-bottom: 1px dotted #eee;
     padding: 2px 0;
+
+}
+/* ======================================= */
+/* ====== 響應式設計：手機優化 (Mobile Optimization) ====== */
+/* ======================================= */
+
+@media (max-width: 768px) {
+    /* 1. 調整整體佈局和間距 */
+    header {
+        flex-direction: column;
+        padding: 15px;
+        align-items: flex-start;
+    }
+    
+    header h1 {
+        margin-bottom: 10px;
+        font-size: 1.5em;
+    }
+
+    /* 2. 儀表板佈局調整為單欄 */
+    .dashboard-grid {
+        grid-template-columns: 1fr; /* 所有模組都佔滿一整行 */
+        gap: 15px;
+        padding: 10px;
+    }
+    
+    /* 3. 卡片內元素調整 */
+    .card {
+        padding: 15px;
+    }
+
+    .card h2 {
+        font-size: 1.2em;
+        padding-bottom: 8px;
+    }
+    
+    /* 4. 感測器數據字體縮小 */
+    .data-value {
+        font-size: 1.8em; 
+        margin: 8px 0;
+    }
+    
+    .data-value-small {
+        font-size: 1.3em;
+    }
+
+    /* 5. 主題管理區的輸入表單調整 */
+    #topic-form {
+        flex-direction: column; /* 按鈕和輸入框垂直排列 */
+        gap: 8px;
+    }
+    
+    #topic-form button {
+        width: 100%; /* 按鈕寬度佔滿 */
+    }
+    
+    #new-topic-input {
+        min-width: unset; /* 取消最小寬度限制 */
+    }
+
+    /* 6. 日誌區塊優化 */
+    .log-module {
+        /* full-width 已經處理了，這裡確保高度適中 */
+        max-height: 250px;
+    }
+
+    #messages {
+        max-height: 150px; /* 縮小日誌的高度 */
+    }
 }
