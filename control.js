@@ -5,7 +5,8 @@ var port = 8084; // WSS Port
 
 // 定義內建主題，這些主題不會被「清除自訂主題」功能移除
 const DEFAULT_TOPICS = [
-    "emqx/esp32eqw",             // <--- 拉條的控制與狀態主題
+    "emqx/esp32eqw",             // 拉條的控制 (發佈)
+    "emqx/esp32eqwc",           // 拉條的實際狀態回傳 (訂閱)
     "emqx/esp32eqw/temp",        // 溫度
     "emqx/esp32eqw/humi",        // 濕度
     "emqx/esp32eqw/light"        // 光照度
@@ -13,7 +14,7 @@ const DEFAULT_TOPICS = [
 
 var subscribedTopics = loadTopicsFromStorage(); 
 
-// --- Local Storage 管理函式 (保持不變) ---
+// --- Local Storage 管理函式 ---
 
 function loadTopicsFromStorage() {
     try {
@@ -105,8 +106,9 @@ function clearTopics() {
 }
 
 
-// --- MQTT 連線與通訊函式 (連線和發佈函式保持不變) ---
+// --- MQTT 連線與通訊函式 ---
 
+// 1. 連接到 Broker
 function startConnect() {
     var clientID = "web_client_" + parseInt(Math.random() * 10000); 
 
@@ -119,8 +121,9 @@ function startConnect() {
 
     var options = {
         timeout: 3,
-        useSSL: true, 
-        keepAliveInterval:240,
+        useSSL: true, // 啟用 WSS 安全連線
+        // 建議在行動網路環境中提高 Keep Alive
+        keepAliveInterval: 90, 
         onSuccess: onConnect, 
         onFailure: onFailure   
     };
@@ -128,6 +131,7 @@ function startConnect() {
     client.connect(options);
 }
 
+// 連線成功
 function onConnect() {
     document.getElementById("connection-status").innerHTML = "已連線";
     document.getElementById("connection-status").className = "connected";
@@ -138,12 +142,14 @@ function onConnect() {
     });
 }
 
+// 連線失敗
 function onFailure(message) {
     document.getElementById("connection-status").innerHTML = "連線失敗";
     document.getElementById("connection-status").className = "disconnected";
     document.getElementById("messages").innerHTML += "<span>連線失敗: " + message.errorMessage + "</span><br>";
 }
 
+// 連線斷開
 function onConnectionLost(responseObject) {
     document.getElementById("connection-status").innerHTML = "連線遺失";
     document.getElementById("connection-status").className = "disconnected";
@@ -152,18 +158,16 @@ function onConnectionLost(responseObject) {
     }
 }
 
+// 4. 發佈訊息 (控制裝置)
 function publishMessage(topic, message) {
     if (client && client.isConnected()) {
         var mqttMessage = new Paho.MQTT.Message(message);
         mqttMessage.destinationName = topic;
-        mqttMessage.qos = 1;
+        // 使用 QoS 1 確保在不穩定的行動網路下指令能到達
+        mqttMessage.qos = 1; 
         client.send(mqttMessage);
-        document.getElementById("messages").innerHTML += "<span> [發佈] 主題: " + topic + " | 訊息: " + message + "</span><br>";
+        document.getElementById("messages").innerHTML += "<span> [發佈] 主題: " + topic + " (QoS 1) | 訊息: " + message + "</span><br>";
     } else {
-        // ****** 增加除錯訊息 ******
-        if (client) {
-             document.getElementById("messages").innerHTML += "<span> [警告] 連線狀態: " + client.isConnected() + "。無法發佈。</span><br>";
-        }
         alert("請先連接到 MQTT Broker！");
     }
 }
@@ -176,18 +180,24 @@ function onMessageArrived(message) {
     
     document.getElementById("messages").innerHTML += "<span> [收到] 主題: " + topic + " | 訊息: " + payload + "</span><br>";
 
-    // ****** 數據更新邏輯：使用您指定的 emqx/esp32eqw/* 主題 ******
+    // ****** 數據更新邏輯 ******
     if (topic === "emqx/esp32eqw/temp") {
         document.getElementById("temp-reading").innerHTML = parseFloat(payload).toFixed(1);
     } else if (topic === "emqx/esp32eqw/humi") {
         document.getElementById("humidity-reading").innerHTML = parseFloat(payload).toFixed(0);
     } else if (topic === "emqx/esp32eqw/light") { 
         document.getElementById("lux-reading").innerHTML = parseFloat(payload).toFixed(0);
-    } else if (topic === "emqx/esp32eqw") { // <--- 處理拉條的控制與狀態
-        var level = parseInt(payload);
-        if (!isNaN(level) && level >= 0 && level <= 31) {
-            document.getElementById("level-slider").value = level;
-            document.getElementById("current-level").innerHTML = level;
+    } else if (topic === "emqx/esp32eqwc") { 
+        // 處理新的獨立狀態主題 (實際檔位回傳)
+        var actualLevel = parseInt(payload);
+        if (!isNaN(actualLevel) && actualLevel >= 0 && actualLevel <= 31) {
+            document.getElementById("actual-level-reading").innerHTML = actualLevel;
+        }
+    } else if (topic === "emqx/esp32eqw") { 
+        // 處理拉條的控制主題 (如果裝置回傳該主題，我們用它來更新發佈設定值)
+        var setpoint = parseInt(payload);
+        if (!isNaN(setpoint) && setpoint >= 0 && setpoint <= 31) {
+             document.getElementById("current-level-setpoint").innerHTML = setpoint; 
         }
     }
     // 其他使用者新增的主題訊息將只顯示在日誌中。
@@ -195,13 +205,13 @@ function onMessageArrived(message) {
 
 // --- 滑桿控制函式 ---
 
+// 更新滑桿數值的顯示 (更新發佈設定值)
 function updateLevelDisplay(level) {
-    document.getElementById("current-level").innerHTML = level;
+    document.getElementById("current-level-setpoint").innerHTML = level;
 }
 
 // 發佈滑桿數值
 function publishLevel(level) {
-    // ****** 發佈到emqx/esp32eqw ******
     publishMessage("emqx/esp32eqw", level);
 }
 
@@ -211,21 +221,4 @@ function publishLevel(level) {
 window.onload = function() {
     renderTopicsList(); 
     startConnect();     
-
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
