@@ -3,6 +3,8 @@ var client = null;
 var host = "MQTTGO.io"; 
 var port = 8084; // WSS Port
 
+
+
 // 定義內建主題，這些主題不會被「清除自訂主題」功能移除
 const DEFAULT_TOPICS = [
     "emqx/esp32eqw",             // 拉條的控制 (發佈)
@@ -14,8 +16,7 @@ const DEFAULT_TOPICS = [
 
 var subscribedTopics = loadTopicsFromStorage(); 
 
-// --- Local Storage 管理函式 ---
-
+// --- Local Storage 管理函式 (省略，與上次回覆相同) ---
 function loadTopicsFromStorage() {
     try {
         const storedTopics = localStorage.getItem('mqtt_topics');
@@ -211,9 +212,15 @@ function updateLevelDisplay(level) {
     document.getElementById("current-level-setpoint").innerHTML = level;
 }
 
-// 發佈滑桿數值
+// 發佈滑桿數值 (已更新：發佈到兩個主題)
 function publishLevel(level) {
+    
+    // 1. 發佈純數值給控制主題 (emqx/esp32eqw)
     publishMessage("emqx/esp32eqw", level);
+    
+    // 2. 發佈中文狀態給狀態回傳主題 (emqx/esp32eqwc)
+    const statusMessage = "檔位(手動):" + level;
+    publishMessage("emqx/esp32eqwc", statusMessage);
 }
 
 
