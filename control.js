@@ -222,6 +222,7 @@ function publishLevel(level) {
     const statusMessage = "檔位(手動):" + level;
     publishMessage("emqx/esp32eqwc", statusMessage);
     publishMessage("emqx/esp32eqw", statusMessage);
+    document.getElementById("current-level-setpoint").innerHTML = level;
 }
 
 
@@ -231,4 +232,5 @@ window.onload = function() {
     renderTopicsList(); 
     startConnect();     
 };
+
 
