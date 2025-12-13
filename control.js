@@ -221,6 +221,7 @@ function publishLevel(level) {
     // 2. 發佈中文狀態給狀態回傳主題 (emqx/esp32eqwc)
     const statusMessage = "檔位(手動):" + level;
     publishMessage("emqx/esp32eqwc", statusMessage);
+    publishMessage("emqx/esp32eqw", statusMessage);
 }
 
 
@@ -230,3 +231,4 @@ window.onload = function() {
     renderTopicsList(); 
     startConnect();     
 };
+
