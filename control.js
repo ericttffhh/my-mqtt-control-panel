@@ -122,7 +122,7 @@ function startConnect() {
     var options = {
         timeout: 3,
         useSSL: true, // 啟用 WSS 安全連線
-        keepAliveInterval: 90, // 增加 Keep Alive 提高行動網路穩定性
+        keepAliveInterval: 90, 
         onSuccess: onConnect, 
         onFailure: onFailure   
     };
@@ -162,7 +162,7 @@ function publishMessage(topic, message) {
     if (client && client.isConnected()) {
         var mqttMessage = new Paho.MQTT.Message(message);
         mqttMessage.destinationName = topic;
-        mqttMessage.qos = 1; // 使用 QoS 1 確保指令到達
+        mqttMessage.qos = 1; 
         client.send(mqttMessage);
         document.getElementById("messages").innerHTML += "<span> [發佈] 主題: " + topic + " (QoS 1) | 訊息: " + message + "</span><br>";
     } else {
@@ -231,6 +231,7 @@ function updateLevelDisplay(level) {
 function publishLevel(level) {
     
     // 1. 發佈純數值給控制主題 (emqx/esp32eqw) - 供設備接收
+    // **這是您確認的主題，用於設備控制**
     publishMessage("emqx/esp32eqw", level);
     
     // 2. 發佈中文狀態給狀態回傳主題 (emqx/esp32eqwc) - 供 UI 回饋顯示
