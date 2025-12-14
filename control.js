@@ -4,11 +4,10 @@ var host = "MQTTGO.io";
 var port = 8084; // WSS Port
 
 
-
-// 定義內建主題，這些主題不會被「清除自訂主題」功能移除
+// 定義內建主題
 const DEFAULT_TOPICS = [
     "emqx/esp32eqw",             // 拉條的控制 (發佈)
-    "emqx/esp32eqwc",           // 拉條的實際狀態回傳 (訂閱) - 用於接收中文/文字狀態
+    "emqx/esp32eqwc",           // 拉條的實際狀態回傳 (訂閱)
     "emqx/esp32eqw/temp",        // 溫度
     "emqx/esp32eqw/humi",        // 濕度
     "emqx/esp32eqw/light"        // 光照度
@@ -16,7 +15,8 @@ const DEFAULT_TOPICS = [
 
 var subscribedTopics = loadTopicsFromStorage(); 
 
-// --- Local Storage 管理函式 (省略，與上次回覆相同) ---
+// --- Local Storage 管理函式 ---
+
 function loadTopicsFromStorage() {
     try {
         const storedTopics = localStorage.getItem('mqtt_topics');
@@ -123,7 +123,7 @@ function startConnect() {
     var options = {
         timeout: 3,
         useSSL: true, // 啟用 WSS 安全連線
-        keepAliveInterval: 90, 
+        keepAliveInterval: 90, // 增加 Keep Alive 提高行動網路穩定性
         onSuccess: onConnect, 
         onFailure: onFailure   
     };
@@ -163,7 +163,7 @@ function publishMessage(topic, message) {
     if (client && client.isConnected()) {
         var mqttMessage = new Paho.MQTT.Message(message);
         mqttMessage.destinationName = topic;
-        mqttMessage.qos = 1; 
+        mqttMessage.qos = 1; // 使用 QoS 1 確保指令到達
         client.send(mqttMessage);
         document.getElementById("messages").innerHTML += "<span> [發佈] 主題: " + topic + " (QoS 1) | 訊息: " + message + "</span><br>";
     } else {
@@ -186,15 +186,31 @@ function onMessageArrived(message) {
         document.getElementById("humidity-reading").innerHTML = parseFloat(payload).toFixed(0);
     } else if (topic === "emqx/esp32eqw/light") { 
         document.getElementById("lux-reading").innerHTML = parseFloat(payload).toFixed(0);
-    } else if (topic === "emqx/esp32eqwc") { 
-        // 處理獨立狀態主題：直接顯示收到的中文/文字訊息
-        var statusText = payload.trim();
         
-        if (statusText.length > 0) {
+    } else if (topic === "emqx/esp32eqwc") { 
+        
+        var statusText = payload.trim();
+        var numericLevel = parseInt(statusText); // 嘗試解析為數字
+
+        if (!isNaN(numericLevel) && numericLevel >= 0 && numericLevel <= 31) {
+            // 情況 1: 收到純數字 (例如 '15') - 用於同步滑桿 UI
+            
+            // a. 更新滑桿位置
+            document.getElementById("level-slider").value = numericLevel;
+            
+            // b. 更新發佈設定值顯示
+            document.getElementById("current-level-setpoint").innerHTML = numericLevel;
+            
+            // c. 更新當前設備狀態顯示
+            document.getElementById("actual-level-reading").innerHTML = numericLevel;
+
+        } else if (statusText.length > 0) {
+            // 情況 2: 收到中文文字或帶有文字的狀態 (例如 '加熱中' 或 '檔位(手動):15')
+            
+            // d. 僅更新當前設備狀態顯示 (顯示中文/文字)
             document.getElementById("actual-level-reading").innerHTML = statusText;
-        } else {
-             document.getElementById("actual-level-reading").innerHTML = "無狀態訊息";
         }
+        
     } else if (topic === "emqx/esp32eqw") { 
         // 處理拉條的控制主題 (如果裝置回傳該主題，我們用它來更新發佈設定值)
         var setpoint = parseInt(payload);
@@ -207,21 +223,20 @@ function onMessageArrived(message) {
 
 // --- 滑桿控制函式 ---
 
-// 更新滑桿數值的顯示 (更新發佈設定值)
+// 更新滑桿數值的顯示 (只在滑動時更新)
 function updateLevelDisplay(level) {
     document.getElementById("current-level-setpoint").innerHTML = level;
 }
 
-// 發佈滑桿數值 (已更新：發佈到兩個主題)
+// 發佈滑桿數值 (雙重發佈)
 function publishLevel(level) {
     
-    // 1. 發佈純數值給控制主題 (emqx/esp32eqw)
+    // 1. 發佈純數值給控制主題 (emqx/esp32eqw) - 供設備接收
     publishMessage("emqx/esp32eqw", level);
     
-    // 2. 發佈中文狀態給狀態回傳主題 (emqx/esp32eqwc)
+    // 2. 發佈中文狀態給狀態回傳主題 (emqx/esp32eqwc) - 供 UI 回饋顯示
     const statusMessage = "檔位(手動):" + level;
     publishMessage("emqx/esp32eqwc", statusMessage);
-
 }
 
 
@@ -231,6 +246,4 @@ window.onload = function() {
     renderTopicsList(); 
     startConnect();     
 };
-
-
 
