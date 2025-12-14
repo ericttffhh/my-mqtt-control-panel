@@ -3,7 +3,6 @@ var client = null;
 var host = "MQTTGO.io"; 
 var port = 8084; // WSS Port
 
-
 // 定義內建主題
 const DEFAULT_TOPICS = [
     "emqx/esp32eqw",             // 拉條的控制 (發佈)
@@ -246,4 +245,3 @@ window.onload = function() {
     renderTopicsList(); 
     startConnect();     
 };
-
