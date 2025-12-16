@@ -157,7 +157,7 @@ function publishMessage(topic, message) {
     if (client && client.isConnected()) {
         var mqttMessage = new Paho.MQTT.Message(message);
         mqttMessage.destinationName = topic;
-        mqttMessage.qos = 1; 
+        mqttMessage.qos = 0; 
         client.send(mqttMessage);
         document.getElementById("messages").innerHTML += "<span> [發佈] 主題: " + topic + " (QoS 1) | 訊息: " + message + "</span><br>";
     } else {
@@ -241,3 +241,4 @@ window.onload = function() {
     renderTopicsList(); 
     startConnect();     
 };
+
