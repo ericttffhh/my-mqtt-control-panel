@@ -1,6 +1,6 @@
 var client = null;
 // ****** 重要：請替換成您 Mosquitto Broker 的公開網域名稱或 IP ******
-var host = "MQTTGO.io"; 
+var host = "broker.emqx.io"; 
 var port = 8084; // WSS Port
 
 // 定義內建主題
@@ -241,4 +241,5 @@ window.onload = function() {
     renderTopicsList(); 
     startConnect();     
 };
+
 
