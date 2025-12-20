@@ -229,9 +229,8 @@ function publishLevel(level) {
     // 1. 發佈純數值給控制主題 (emqx/esp32eqw) - 供設備接收
     publishMessage("emqx/esp32eqw", level);
     
-    // 2. 發佈中文狀態給狀態回傳主題 (emqx/esp32eqwc) - 供 UI 回饋顯示
-    const statusMessage = "檔位(手動):" + level;
-    publishMessage("emqx/esp32eqwc", statusMessage);
+   
+    //    ///    ///    /    / statusMessa"檔位()    //)    /publishMessage("emqx/esp32eqwc", statusMes
 }
 
 
